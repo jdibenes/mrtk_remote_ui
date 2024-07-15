@@ -26,6 +26,9 @@ public class RemoteUnityScene : MonoBehaviour
 
     void Start()
     {
+        hl2ss.UpdateCoordinateSystem();
+        hl2ss.Initialize(false, false, false, false, false, false, false, false, true, false, false, false, true);
+
         m_panel_manifest = new Dictionary<string, GameObject>();
         m_remote_objects = new Dictionary<int, GameObject>();
         m_loop = false;
