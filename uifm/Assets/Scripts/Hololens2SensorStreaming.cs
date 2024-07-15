@@ -36,9 +36,15 @@ public class Hololens2SensorStreaming : MonoBehaviour
     [Tooltip("Enable Extended Audio Interface.")]
     public bool enableEA = true;
 
+    [Tooltip("Enable Extended Video Interface.")]
+    public bool enableEV = true;
+
+    [Tooltip("Enable Guest Message Queue interface.")]
+    public bool enableMQX = true;
+
     void Start()
     {
         hl2ss.UpdateCoordinateSystem();
-        hl2ss.Initialize(enableRM, enablePV, enableMC, enableSI, enableRC, enableSM, enableSU, enableVI, enableMQ, enableEET, enableEA);
+        hl2ss.Initialize(enableRM, enablePV, enableMC, enableSI, enableRC, enableSM, enableSU, enableVI, enableMQ, enableEET, enableEA, enableEV, enableMQX);
     }
 }
