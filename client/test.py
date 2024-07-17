@@ -2,10 +2,10 @@
 # Remote UI Example
 #------------------------------------------------------------------------------
 
-from html2image import Html2Image
-
+import os
 import hl2ss
-import hl2ss_uifm as uifm
+import hl2ss_lnm
+import hl2ss_uifm
 
 # Settings --------------------------------------------------------------------
 
@@ -17,7 +17,7 @@ host = '192.168.1.7'
 # UI elements
 # All positions defined in local coordinates in meters
 
-html_name = 'pbj.html'
+#html_name = 'pbj.html'
 video_names = ['video_1.webm', 'video_2.webm', 'video_3.webm']
 image_name = 'image.jpg'#'pbj.png'#'image.jpg'
 title = 'UI Sample - Video, Images, and Text'
@@ -48,8 +48,8 @@ button2_position = [panel_position[0] + panel_scale[0] / 2 - 0.096 / 2, panel_po
 
 # Load sample video and image
 
-hti = Html2Image(output_path='.', custom_flags=['--default-background-color=FFFFFF'])
-hti.screenshot(html_file='pbj.html', save_as='pbj.png')
+#hti = Html2Image(output_path='.', custom_flags=['--default-background-color=FFFFFF'])
+#hti.screenshot(html_file='pbj.html', save_as='pbj.png')
 
 ui_panel = 'sample_panel'
 ui_video = 'surface_video'
@@ -59,24 +59,24 @@ ui_text2 = 'text_title'
 ui_button1 = 'button_next_video'
 ui_button2 = 'button_prev_video'
 
-ipc = hl2ss.ipc_umq(host, hl2ss.IPCPort.UNITY_MESSAGE_QUEUE)
+ipc = hl2ss_lnm.ipc_umq(host, hl2ss.IPCPort.UNITY_MESSAGE_QUEUE)
 ipc.open()
 
 key = 0
 video_index = 0
 
-display_list = uifm.command_buffer()
+display_list = hl2ss_uifm.command_buffer()
 
 # Begin display list
 
-image = open(image_name, 'rb')
+image = open(os.path.join('./data', image_name), 'rb')
 data_image = image.read()
 image.close()
 
 display_list.file_upload(image_name, data_image)
 
 for video_name in video_names:
-    video = open(video_name, 'rb')
+    video = open(os.path.join('./data', video_name), 'rb')
     data_video = video.read()
     video.close()
     display_list.file_upload(video_name, data_video)
@@ -85,48 +85,48 @@ for video_name in video_names:
 display_list.panel_destroy(ui_panel)
 display_list.panel_create(ui_panel, spawn_position)
 display_list.panel_set_transform(ui_panel, pin_position, panel_position, panel_scale)
-display_list.panel_set_active(ui_panel, uifm.ActiveState.Active)
+display_list.panel_set_active(ui_panel, hl2ss_uifm.ActiveState.Active)
 #display_list.panel_exists
 
 display_list.surface_create(ui_panel, ui_video)
 display_list.surface_set_transform(ui_panel, ui_video, surface_video_position, surface_video_rotation, surface_video_scale)
-display_list.surface_set_active(ui_panel, ui_video, uifm.ActiveState.Active)
-display_list.surface_set_video(ui_panel, ui_video, video_names[video_index], True)
+display_list.surface_set_active(ui_panel, ui_video, hl2ss_uifm.ActiveState.Active)
+display_list.surface_set_video(ui_panel, ui_video, video_names[video_index], True, True, False, 1.0)
 #display_list.surface_destroy
 #display_list.surface_exists
 
 display_list.surface_create(ui_panel, ui_image)
 display_list.surface_set_transform(ui_panel, ui_image, surface_image_position, surface_image_rotation, surface_image_scale)
-display_list.surface_set_active(ui_panel, ui_image, uifm.ActiveState.Active)
+display_list.surface_set_active(ui_panel, ui_image, hl2ss_uifm.ActiveState.Active)
 display_list.surface_set_texture(ui_panel, ui_image, image_name)
 
 display_list.text_create(ui_panel, ui_text1)
 display_list.text_set_transform(ui_panel, ui_text1, text_body_position, text_body_dimensions)
-display_list.text_set_format(ui_panel, ui_text1, uifm.FontStyles.Normal, 0.08, False, [1,1,1,1], uifm.HorizontalAlignmentOptions.Left, uifm.VerticalAlignmentOptions.Top, True, uifm.TextOverflowModes.Overflow)
+display_list.text_set_format(ui_panel, ui_text1, hl2ss_uifm.FontStyles.Normal, 0.08, False, [1,1,1,1], hl2ss_uifm.HorizontalAlignmentOptions.Left, hl2ss_uifm.VerticalAlignmentOptions.Top, True, hl2ss_uifm.TextOverflowModes.Overflow)
 display_list.text_set_text(ui_panel, ui_text1, text)
-display_list.text_set_active(ui_panel, ui_text1, uifm.ActiveState.Active)
+display_list.text_set_active(ui_panel, ui_text1, hl2ss_uifm.ActiveState.Active)
 #display_list.text_destroy
 #display_list.text_exists
 
 display_list.text_create(ui_panel, ui_text2)
 display_list.text_set_transform(ui_panel, ui_text2, text_title_position, text_title_dimensions)
-display_list.text_set_format(ui_panel, ui_text2, uifm.FontStyles.Bold, 0.1, False, [1,1,1,1], uifm.HorizontalAlignmentOptions.Center, uifm.VerticalAlignmentOptions.Middle, True, uifm.TextOverflowModes.Overflow)
+display_list.text_set_format(ui_panel, ui_text2, hl2ss_uifm.FontStyles.Bold, 0.1, False, [1,1,1,1], hl2ss_uifm.HorizontalAlignmentOptions.Center, hl2ss_uifm.VerticalAlignmentOptions.Middle, True, hl2ss_uifm.TextOverflowModes.Overflow)
 display_list.text_set_text(ui_panel, ui_text2, title)
-display_list.text_set_active(ui_panel, ui_text2, uifm.ActiveState.Active)
+display_list.text_set_active(ui_panel, ui_text2, hl2ss_uifm.ActiveState.Active)
 #display_list.text_destroy
 #display_list.text_exists
 
 display_list.button_create(ui_panel, ui_button1, 0)
 display_list.button_set_transform(ui_panel, ui_button1, button1_position, [0,0,0,1], [1,1,1])
 display_list.button_set_text(ui_panel, ui_button1, 'Next Video')
-display_list.button_set_active(ui_panel, ui_button1, uifm.ActiveState.Active)
+display_list.button_set_active(ui_panel, ui_button1, hl2ss_uifm.ActiveState.Active)
 #display_list.button_exists
 #display_list.button_destroy
 
 display_list.button_create(ui_panel, ui_button2, 1)
 display_list.button_set_transform(ui_panel, ui_button2, button2_position, [0,0,0,1], [1,1,1])
 display_list.button_set_text(ui_panel, ui_button2, 'Previous Video')
-display_list.button_set_active(ui_panel, ui_button2, uifm.ActiveState.Active)
+display_list.button_set_active(ui_panel, ui_button2, hl2ss_uifm.ActiveState.Active)
 
 # End display list
 
@@ -135,15 +135,15 @@ results = ipc.pull(display_list) # Get result from server
 print(f'Response: {results}')
 
 while (True):
-    display_list = uifm.command_buffer()
+    display_list = hl2ss_uifm.command_buffer()
     display_list.button_get_state(ui_panel)
     ipc.push(display_list)
     results = ipc.pull(display_list)[0]
     if (results != 0):
         video_index += (1 if ((results & 1) != 0) else 0) + (-1 if ((results & 2) != 0) else 0)
         video_index %= len(video_names)
-        display_list = uifm.command_buffer()
-        display_list.surface_set_video(ui_panel, ui_video, video_names[video_index], True)
+        display_list = hl2ss_uifm.command_buffer()
+        display_list.surface_set_video(ui_panel, ui_video, video_names[video_index], True, True, False, 1.0)
         ipc.push(display_list)
         ipc.pull(display_list)
         print(f'Button pressed {results}')
