@@ -139,7 +139,7 @@ class command_buffer(hl2ss.umq_command_buffer):
 
     def file_exists(self, filename):
         r0 = filename.encode('utf-8')
-        self.add(32, r0)
+        self.add(32, _pack_params_struct(r0))
 
     def file_upload(self, filename, data):
         r0 = filename.encode('utf-8')
@@ -148,7 +148,12 @@ class command_buffer(hl2ss.umq_command_buffer):
 
     def file_delete(self, filename):
         r0 = filename.encode('utf-8')
-        self.add(34, r0)
+        self.add(34, _pack_params_struct(r0))
+
+    def file_move(self, filename, destination):
+        r0 = filename.encode('utf-8')
+        r1 = destination.encode('utf-8')
+        self.add(35, _pack_params_struct(r0, r1))
 
 
     #--------------------------------------------------------------------------
@@ -216,12 +221,32 @@ class command_buffer(hl2ss.umq_command_buffer):
         r2 = file_name.encode('utf-8')
         self.add(69, _pack_params_struct(r0, r1, r2))
 
-    def surface_set_video(self, parent, name, file_name, loop):
+    def surface_set_video(self, parent, name, file_name, wait_for_first_frame, loop, skip_on_drop, playback_speed):
         r0 = parent.encode('utf-8')
         r1 = name.encode('utf-8')
         r2 = file_name.encode('utf-8')
-        r3 = struct.pack('<I', 1 if (loop) else 0)
+        r3 = struct.pack('<IIIf', 1 if (wait_for_first_frame) else 0, 1 if (loop) else 0, 1 if (skip_on_drop) else 0, playback_speed)
         self.add(70, _pack_params_struct(r0, r1, r2, r3))
+
+    def surface_video_play(self, parent, name):
+        r0 = parent.encode('utf-8')
+        r1 = name.encode('utf-8')
+        self.add(71, _pack_params_struct(r0, r1))
+
+    def surface_video_pause(self, parent, name):
+        r0 = parent.encode('utf-8')
+        r1 = name.encode('utf-8')
+        self.add(72, _pack_params_struct(r0, r1))
+
+    def surface_video_stop(self, parent, name):
+        r0 = parent.encode('utf-8')
+        r1 = name.encode('utf-8')
+        self.add(73, _pack_params_struct(r0, r1))
+
+    def surface_video_is_playing(self, parent, name):
+        r0 = parent.encode('utf-8')
+        r1 = name.encode('utf-8')
+        self.add(74, _pack_params_struct(r0, r1))
 
 
     #--------------------------------------------------------------------------
