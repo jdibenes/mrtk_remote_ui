@@ -82,6 +82,8 @@ while (enable):
             audio_index = (audio_index + 1) % len(audio_file_descriptors)
             break
 
+        time.sleep(1)
+
 cmdbuf = hl2ss_uifm.command_buffer()
 cmdbuf.audio_control(hl2ss_uifm.AudioOperation.STOP)
 
