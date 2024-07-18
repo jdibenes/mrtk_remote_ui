@@ -137,7 +137,7 @@ def _pack_params_struct(*args):
 
 class command_buffer(hl2ss.umq_command_buffer):
     #--------------------------------------------------------------------------
-    # Remote Unity Scene IO Map
+    # Remote Unity Scene
     #--------------------------------------------------------------------------
 
     def create_primitive(self, type):
@@ -184,6 +184,9 @@ class command_buffer(hl2ss.umq_command_buffer):
 
     def set_target_mode(self, mode):
         self.add(20, struct.pack('<I', mode))
+
+    def set_debug_mode(self, enable):
+        self.add(21, struct.pack('<I', 1 if (enable) else 0))
 
 
     #--------------------------------------------------------------------------

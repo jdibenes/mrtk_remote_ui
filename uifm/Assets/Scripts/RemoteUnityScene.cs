@@ -9,11 +9,12 @@ using UnityEngine.Video;
 using UnityEngine.Networking;
 using System.Globalization;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Runtime.InteropServices;
 
 public class RemoteUnityScene : MonoBehaviour
 {
     private const uint ERROR_BASE = 0x80000000;
-    private const uint ERROR_MSG  = ERROR_BASE + 8;
+    //private const uint ERROR_MSG  = ERROR_BASE + 8;
 
 
 
@@ -28,6 +29,7 @@ public class RemoteUnityScene : MonoBehaviour
     private Dictionary<string, GameObject> m_panel_manifest;
     private bool m_loop;
     private bool m_mode;
+    private bool m_debug;
     private int m_last_key;
 
     [Tooltip("Set to BasicMaterial to support semi-transparent primitives.")]
@@ -42,11 +44,13 @@ public class RemoteUnityScene : MonoBehaviour
         m_remote_objects = new Dictionary<int, GameObject>();
         m_loop = false;
         m_mode = false;
+        m_debug = false;
     }
 
     void Update()
     {
         while (GetMessage() && m_loop) ;
+        DispatchMessage();
     }
 
     bool GetMessage()
@@ -55,11 +59,32 @@ public class RemoteUnityScene : MonoBehaviour
         byte[] data;
         if (!hl2ss.PullMessage(out command, out data)) { return false; }
         uint result;
-        try { result = ProcessMessage(command, data); } catch (Exception e) { result = ERROR_BASE + 0; }
+        try { result = ProcessMessage(command, data); } catch (Exception e) { result = ExceptionVector(e); }
         hl2ss.PushResult(result);
         hl2ss.AcknowledgeMessage(command);
         return true;
     }
+
+    uint ExceptionVector(Exception e)
+    {
+        if (!m_debug) { return ERROR_BASE; }
+        byte[] msg = System.Text.Encoding.UTF8.GetBytes(e.ToString());
+        GCHandle h = GCHandle.Alloc(msg, GCHandleType.Pinned);
+        hl2ss.PushMessage(0xFFFFFFFE, (uint)msg.Length, h.AddrOfPinnedObject());
+        h.Free();
+        return ERROR_BASE;
+    }
+
+    bool DispatchMessage()
+    {
+        uint result;
+        if (!hl2ss.PullResult(out result)) { return false; }
+        hl2ss.AcknowledgeResult(result);
+        return true;
+    }
+
+
+
 
     uint ProcessMessage(uint command, byte[] data)
     {
@@ -82,6 +107,7 @@ public class RemoteUnityScene : MonoBehaviour
         case 18: ret = MSG_BeginDisplayList(data); break;
         case 19: ret = MSG_EndDisplayList(data); break;
         case 20: ret = MSG_SetTargetMode(data); break;
+        case 21: ret = MSG_SetDebugMode(data); break;
 
 
         // File IO Region -----------------------------------------------------
@@ -135,6 +161,9 @@ public class RemoteUnityScene : MonoBehaviour
 
         return ret;
     }
+
+
+
 
     // OK
     uint AddGameObject(GameObject go)
@@ -396,8 +425,13 @@ public class RemoteUnityScene : MonoBehaviour
     }
 
 
-    //
-       
+    uint MSG_SetDebugMode(byte[] data)
+    {
+        m_debug = BitConverter.ToInt32(data, 0) != 0;
+        return 0;
+    }
+
+    // 
 
     void Panel_Create(string name, float dx, float dy, float dz)
     {

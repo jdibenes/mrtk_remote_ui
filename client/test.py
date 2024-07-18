@@ -60,7 +60,10 @@ ui_button1 = 'button_next_video'
 ui_button2 = 'button_prev_video'
 
 ipc = hl2ss_lnm.ipc_umq(host, hl2ss.IPCPort.UNITY_MESSAGE_QUEUE)
+client_gmq = hl2ss_lnm.ipc_gmq(host, hl2ss.IPCPort.GUEST_MESSAGE_QUEUE)
+
 ipc.open()
+client_gmq.open()
 
 key = 0
 video_index = 0
@@ -73,6 +76,7 @@ image = open(os.path.join('./data', image_name), 'rb')
 data_image = image.read()
 image.close()
 
+display_list.set_debug_mode(True)
 display_list.file_upload(image_name, data_image)
 
 for video_name in video_names:
@@ -136,6 +140,8 @@ ipc.push(display_list) # Send command to server
 results = ipc.pull(display_list) # Get result from server
 print(f'Response: {results}')
 
+
+
 while (True):
     display_list = hl2ss_uifm.command_buffer()
     display_list.button_get_state(ui_panel)
@@ -152,4 +158,13 @@ while (True):
         ipc.pull(display_list)
         print(f'Button pressed {results}')
 
+    msg = client_gmq.pull()
+    if (msg is not None):
+        command_id     = msg[0]
+        command_params = msg[1]
+        if (command_id == 0xFFFFFFFE):
+            print('= SERVER EXCEPTION =')
+            print(command_params.decode('utf-8'))
+
+client_gmq.close()
 ipc.close()
