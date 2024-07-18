@@ -6,17 +6,11 @@ using TMPro;
 using UnityEngine;
 using Microsoft.MixedReality.Toolkit.Audio;
 using UnityEngine.Video;
-using UnityEngine.Networking;
-using System.Globalization;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Runtime.InteropServices;
 
 public class RemoteUnityScene : MonoBehaviour
 {
     private const uint ERROR_BASE = 0x80000000;
-    //private const uint ERROR_MSG  = ERROR_BASE + 8;
-
-
 
     public GameObject m_tts;
     public GameObject m_panel_sample;
@@ -83,15 +77,13 @@ public class RemoteUnityScene : MonoBehaviour
         return true;
     }
 
-
-
-
     uint ProcessMessage(uint command, byte[] data)
     {
         uint ret = ~0U;
 
         switch (command)
         {
+        // Remote Unity Scene (Legacy) IO Region ------------------------------
         case 0: ret = MSG_CreatePrimitive(data); break;
         case 1: ret = MSG_SetActive(data); break;
         case 2: ret = MSG_SetWorldTransform(data); break;
@@ -101,15 +93,12 @@ public class RemoteUnityScene : MonoBehaviour
         case 6: ret = MSG_CreateText(data); break;
         case 7: ret = MSG_SetText(data); break;
         case 8: ret = MSG_Say(data); break;
-
         case 16: ret = MSG_Remove(data); break;
         case 17: ret = MSG_RemoveAll(data); break;
         case 18: ret = MSG_BeginDisplayList(data); break;
         case 19: ret = MSG_EndDisplayList(data); break;
         case 20: ret = MSG_SetTargetMode(data); break;
         case 21: ret = MSG_SetDebugMode(data); break;
-
-
         // File IO Region -----------------------------------------------------
         case 32: ret = MSG_FileExists(data); break;
         case 33: ret = MSG_FileUpload(data); break;
@@ -141,7 +130,7 @@ public class RemoteUnityScene : MonoBehaviour
         case 84: ret = MSG_TextSetTransform(data); break;
         case 85: ret = MSG_TextSetFormat(data); break;
         case 86: ret = MSG_TextSetText(data); break;
-
+        // Button IO Region ---------------------------------------------------
         case 96: ret = MSG_ButtonCreate(data); break;
         case 97: ret = MSG_ButtonExists(data); break;
         case 98: ret = MSG_ButtonDestroy(data); break;
@@ -149,7 +138,6 @@ public class RemoteUnityScene : MonoBehaviour
         case 100: ret = MSG_ButtonSetTransform(data); break;
         case 101: ret = MSG_ButtonSetText(data); break;
         case 102: ret = MSG_ButtonGetState(data); break;
-
         // Audio Output IO Region ---------------------------------------------
         case 112: ret = MSG_AudioPlayData(data); break;
         case 113: ret = MSG_AudioPlayFile(data); break;
@@ -157,13 +145,15 @@ public class RemoteUnityScene : MonoBehaviour
         case 115: ret = MSG_AudioControl(data); break;
         // IPC IO Region ------------------------------------------------------
         case ~0U: ret = MSG_Disconnect(data); break;
+        default:  throw new Exception(string.Format("Command {0} not implemented!", command));
         }
 
         return ret;
     }
 
-
-
+    //--------------------------------------------------------------------------
+    // Remote Unity Scene (Legacy)
+    //--------------------------------------------------------------------------
 
     // OK
     uint AddGameObject(GameObject go)
@@ -418,21 +408,22 @@ public class RemoteUnityScene : MonoBehaviour
     // OK
     uint MSG_Say(byte[] data)
     {
-        string str;
-        try { str = System.Text.Encoding.UTF8.GetString(data); } catch { return 0; }
-        m_tts.GetComponent<TextToSpeech>().StartSpeaking(str);
-        return 1;
+        m_tts.GetComponent<TextToSpeech>().StartSpeaking(System.Text.Encoding.UTF8.GetString(data));
+        return 0;
     }
 
-
+    // OK
     uint MSG_SetDebugMode(byte[] data)
     {
         m_debug = BitConverter.ToInt32(data, 0) != 0;
         return 0;
     }
 
-    // 
+    //--------------------------------------------------------------------------
+    // UI Functions
+    //--------------------------------------------------------------------------
 
+    // OK
     void Panel_Create(string name, float dx, float dy, float dz)
     {
         if (Panel_Exists(name)) { throw new Exception(string.Format("Panel [{0}] already exists!", name)); }
@@ -441,16 +432,19 @@ public class RemoteUnityScene : MonoBehaviour
         panel.name = name;
     }
 
+    // OK
     bool Panel_Exists(string name)
     {
         return m_panel_manifest.ContainsKey(name);
     }
 
+    // OK
     GameObject Panel_Get(string name)
     {
         return m_panel_manifest[name];
     }
 
+    // OK
     void Panel_Destroy(string name)
     {
         GameObject panel = Panel_Get(name);
@@ -458,11 +452,13 @@ public class RemoteUnityScene : MonoBehaviour
         Destroy(panel);
     }
 
+    // OK
     void Panel_SetActive(string name, bool active)
     {
         Panel_Get(name).SetActive(active);
     }
 
+    // OK
     void Panel_SetTransform(string name, Vector3 pin_position, Vector3 pan_position, Vector3 pan_scale)
     {
         GameObject panel = Panel_Get(name);
@@ -475,6 +471,7 @@ public class RemoteUnityScene : MonoBehaviour
         backplate_transform.localScale = pan_scale;
     }
 
+    // OK
     void Control_Create(string name, string id, GameObject base_object)
     {
         if (Control_Exists(name, id)) { throw new Exception(string.Format("Control [{0}/{1}] already exists!", name, id)); }
@@ -482,26 +479,31 @@ public class RemoteUnityScene : MonoBehaviour
         child.name = id;
     }
 
+    // OK
     GameObject Control_Get(string name, string id)
     {
         return Panel_Get(name).transform.Find(id).gameObject;
     }
 
+    // OK
     bool Control_Exists(string name, string id)
     {
         return Panel_Get(name).transform.Find(id) != null;
     }
 
+    // OK
     void Control_Destroy(string name, string id)
     {
         Destroy(Control_Get(name, id));
     }
 
+    // OK
     void Control_SetActive(string name, string id, bool active)
     {
-        Panel_Get(name).transform.Find(id).gameObject.SetActive(active);
+        Control_Get(name, id).SetActive(active);
     }
 
+    // OK
     void Control_SetTransform(string name, string id, Vector3 position, Quaternion rotation, Vector3 scale)
     {
         Transform child_transform = Panel_Get(name).transform.Find(id);
@@ -511,12 +513,14 @@ public class RemoteUnityScene : MonoBehaviour
         child_transform.localScale = scale;
     }
 
+    // OK
     string GetFullPath(string file_name)
     {
-        if (file_name.Contains("/") || file_name.Contains("\\")) { return null; }
+        if (file_name.Contains("/") || file_name.Contains("\\")) { throw new Exception("Path separators are not allowed!"); }
         return Application.persistentDataPath + "/" + file_name;
     }
 
+    // OK
     string UnpackString(byte[] data, int offset, int count)
     {
         return System.Text.Encoding.UTF8.GetString(data, offset, count);
@@ -1051,28 +1055,25 @@ public class RemoteUnityScene : MonoBehaviour
     // UI Button
     //------------------------------------------------------------------------
 
+    // OK
     uint MSG_ButtonCreate(byte[] data)
     {
         int offset_name = BitConverter.ToInt32(data, 0);
         int offset_id   = BitConverter.ToInt32(data, 4);
-        int offset_data = BitConverter.ToInt32(data, 8);
         int offset_end  = data.Length;
 
-        string name = UnpackString(data, offset_name, offset_id   - offset_name);
-        string id   = UnpackString(data, offset_id,   offset_data - offset_id);
-
-        int index = BitConverter.ToInt32(data, offset_data + 0) & 31;
+        string name = UnpackString(data, offset_name, offset_id  - offset_name);
+        string id   = UnpackString(data, offset_id,   offset_end - offset_id);
 
         Control_Create(name, id, m_button_sample);
 
         ButtonEvent be = Control_Get(name, id).GetComponent<ButtonEvent>();
-
         be.pressed = false;
-        be.index   = index;
 
         return 0;
     }
 
+    // OK
     uint MSG_ButtonExists(byte[] data)
     {
         int offset_name = BitConverter.ToInt32(data, 0);
@@ -1085,6 +1086,7 @@ public class RemoteUnityScene : MonoBehaviour
         return Control_Exists(name, id) ? 1U : 0;
     }
 
+    // OK
     uint MSG_ButtonDestroy(byte[] data)
     {
         int offset_name = BitConverter.ToInt32(data, 0);
@@ -1099,6 +1101,7 @@ public class RemoteUnityScene : MonoBehaviour
         return 0;
     }
 
+    // OK
     uint MSG_ButtonSetActive(byte[] data)
     {
         int offset_name = BitConverter.ToInt32(data, 0);
@@ -1116,6 +1119,7 @@ public class RemoteUnityScene : MonoBehaviour
         return 0;
     }
 
+    // OK
     uint MSG_ButtonSetTransform(byte[] data)
     {
         int offset_name = BitConverter.ToInt32(data, 0);
@@ -1142,6 +1146,7 @@ public class RemoteUnityScene : MonoBehaviour
         return 0;
     }
 
+    // OK
     uint MSG_ButtonSetText(byte[] data)
     {
         int offset_name = BitConverter.ToInt32(data, 0);
@@ -1159,23 +1164,21 @@ public class RemoteUnityScene : MonoBehaviour
         return 0;
     }
 
+    // OK
     uint MSG_ButtonGetState(byte[] data)
     {
         int offset_name = BitConverter.ToInt32(data, 0);
+        int offset_id   = BitConverter.ToInt32(data, 4);
         int offset_end  = data.Length;
 
-        string name = UnpackString(data, offset_name, offset_end - offset_name);
+        string name = UnpackString(data, offset_name, offset_id  - offset_name);
+        string id   = UnpackString(data, offset_id,   offset_end - offset_id);
 
-        uint ret = 0;
+        ButtonEvent be = Control_Get(name, id).GetComponent<ButtonEvent>();
+        bool pressed = be.pressed;
+        be.pressed = false;
 
-        ButtonEvent[] list = Panel_Get(name).GetComponentsInChildren<ButtonEvent>();
-        foreach (var e in list)
-        {
-            ret |= (e.pressed ? 1U : 0U) << e.index;
-            e.pressed = false;
-        }
-
-        return ret;
+        return pressed ? 1U : 0;
     }
 
     //--------------------------------------------------------------------------
@@ -1272,61 +1275,3 @@ public class RemoteUnityScene : MonoBehaviour
         return 0;
     }
 }
-
-
-
-/*
-    bool Failed(uint r)
-    {
-        return r >= ERROR_BASE;
-    }
-
-    bool Succeded(uint r)
-    {
-        return !Failed(r);
-    }
-
-    uint GetControl(GameObject panel, string id, out GameObject control)
-    {
-        control = null;
-        if (panel == null) { return ERROR_BASE + 4; }
-        if (id == null) { return ERROR_BASE + 5; }
-        Transform child_transform = panel.transform.Find(id);
-        if (child_transform == null) { return ERROR_BASE + 6; }
-        control = child_transform.gameObject;
-        if (control == null) { return ERROR_BASE + 7; }
-        return 0;
-    }
-
-    uint GetControl(string name, string id, out GameObject control)
-    {
-        control = null;
-        uint r = GetPanel(name, out GameObject panel);
-        if (Failed(r)) { return r; }
-        return GetControl(panel, id, out control);
-    }
-
-    uint GetPanel(byte[] data, int offset_name, int offset_name_end, out GameObject panel)
-    {
-        string name = UnpackString(data, offset_name, offset_name_end - offset_name);
-        return GetPanel(name, out panel);
-    }
-
-    uint GetControl(byte[] data, GameObject panel, int offset_id, int offset_id_end, out GameObject control)
-    {
-        string id = UnpackString(data, offset_id, offset_id_end - offset_id);
-        return GetControl(panel, id, out control);
-    }
-
-    uint GetControl(byte[] data, int offset_name, int offset_name_end, int offset_id, int offset_id_end, out GameObject control)
-    {
-        control = null;
-        uint r = GetPanel(data, offset_name, offset_name_end, out GameObject panel);
-        if (Failed(r)) { return r; }
-        return GetControl(data, panel, offset_id, offset_id_end, out control);
-    }
-        Quaternion conjugate(Quaternion q)
-    {
-        return new Quaternion(-q.x, -q.y, -q.z, q.w);
-    }
-    */
