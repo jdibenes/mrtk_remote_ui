@@ -135,7 +135,7 @@ def _pack_params_struct(*args):
 
 class command_buffer(hl2ss.umq_command_buffer):
     #--------------------------------------------------------------------------
-    # Remote Unity Scene
+    # Remote Unity Scene (Legacy)
     #--------------------------------------------------------------------------
 
     def create_primitive(self, type):
