@@ -12,12 +12,15 @@ import hl2ss_uifm
 host = '192.168.1.7'
 
 # Folder containing the audio files
-data_folder = './data_demo'
+data_folder = './data_demo/audio'
 
 # Audio file names
+# Use hl2ss_uifm.AudioType.MPEG for mp3
+# Use hl2ss_uifm.AudioType.WAV for wav
 playlist = [
-    ('the_lost_forest.mp3', hl2ss_uifm.AudioType.MPEG),
-    ('soul.wav',            hl2ss_uifm.AudioType.WAV)
+    ('Forest Frolic Loop.mp3', hl2ss_uifm.AudioType.MPEG),
+    ('Desert Conflict.mp3', hl2ss_uifm.AudioType.MPEG),
+    ('Village Tarantella.mp3', hl2ss_uifm.AudioType.MPEG)
 ]
 
 #------------------------------------------------------------------------------
