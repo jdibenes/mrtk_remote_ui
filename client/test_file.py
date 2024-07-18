@@ -11,6 +11,8 @@ image.close()
 
 display_list = hl2ss_uifm.command_buffer()
 display_list.file_exists('image_1.jpg')
+display_list.file_delete('ababa.jpg')
+display_list.file_move('ababa.png', 'ababa_2.png')
 display_list.file_upload('image_1.jpg', data_image)
 display_list.file_exists('image_1.jpg')
 display_list.file_exists('image_2.jpg')

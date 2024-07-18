@@ -67,6 +67,59 @@ class TextOverflowModes:
     Linked = 6
 
 
+
+
+class VideoSetting:
+    LOOP = 0
+    SKIP_ON_DROP = 1
+    WAIT_FOR_FIRST_FRAME = 2
+    PLAYBACK_SPEED = 3
+
+
+class VideoAudioSetting:
+    MUTE = 0
+    VOLUME = 1
+
+
+class VideoOperation:
+    PLAY = 0
+    PAUSE = 1
+    STOP = 2
+    IS_PLAYING = 3
+    IS_PAUSED = 4
+
+
+class AudioType:
+    UNKNOWN = 0
+    ACC = 1
+    AIFF = 2
+    IT = 10
+    MOD = 12
+    MPEG = 13
+    OGGVORBIS = 14
+    S3M = 17
+    WAV = 20
+    XM = 21
+    XMA = 22
+    VAG = 23
+    AUDIOQUEUE = 24
+
+
+class AudioSetting:
+    PAN_STEREO = 0
+    PITCH = 1
+    VOLUME = 2
+
+
+class AudioOperation:
+    MUTE = 0
+    UNMUTE = 1
+    PAUSE = 2
+    UNPAUSE = 3
+    STOP = 4
+    IS_PLAYING = 5
+
+
 def _pack_params_struct(*args):
     header = bytearray()
     offset = hl2ss._SIZEOF.DWORD * len(args)
@@ -134,7 +187,7 @@ class command_buffer(hl2ss.umq_command_buffer):
 
 
     #--------------------------------------------------------------------------
-    # File IO Map
+    # File Operations
     #--------------------------------------------------------------------------
 
     def file_exists(self, filename):
@@ -157,7 +210,7 @@ class command_buffer(hl2ss.umq_command_buffer):
 
 
     #--------------------------------------------------------------------------
-    # Panel IO Map
+    # UI Panel
     #--------------------------------------------------------------------------
 
     def panel_create(self, name, local_position):
@@ -167,11 +220,11 @@ class command_buffer(hl2ss.umq_command_buffer):
 
     def panel_exists(self, name):
         r0 = name.encode('utf-8')
-        self.add(49, r0)
+        self.add(49, _pack_params_struct(r0))
 
     def panel_destroy(self, name):
         r0 = name.encode('utf-8')
-        self.add(50, r0)
+        self.add(50, _pack_params_struct(r0))
 
     def panel_set_active(self, name, active):
         r0 = name.encode('utf-8')
@@ -185,7 +238,7 @@ class command_buffer(hl2ss.umq_command_buffer):
 
 
     #--------------------------------------------------------------------------
-    # Surface IO Map
+    # UI Surface
     #--------------------------------------------------------------------------
 
     def surface_create(self, parent, name):
@@ -215,42 +268,45 @@ class command_buffer(hl2ss.umq_command_buffer):
         r2 = struct.pack('<ffffffffff', position[0], position[1], position[2], rotation[0], rotation[1], rotation[2], rotation[3], scale[0], scale[1], scale[2])
         self.add(68, _pack_params_struct(r0, r1, r2))
 
-    def surface_set_texture(self, parent, name, file_name):
+    def surface_set_texture_data(self, parent, name, data):
         r0 = parent.encode('utf-8')
         r1 = name.encode('utf-8')
-        r2 = file_name.encode('utf-8')
+        r2 = data
         self.add(69, _pack_params_struct(r0, r1, r2))
 
-    def surface_set_video(self, parent, name, file_name, wait_for_first_frame, loop, skip_on_drop, playback_speed):
+    def surface_set_texture_file(self, parent, name, file_name):
         r0 = parent.encode('utf-8')
         r1 = name.encode('utf-8')
         r2 = file_name.encode('utf-8')
-        r3 = struct.pack('<IIIf', 1 if (wait_for_first_frame) else 0, 1 if (loop) else 0, 1 if (skip_on_drop) else 0, playback_speed)
-        self.add(70, _pack_params_struct(r0, r1, r2, r3))
+        self.add(70, _pack_params_struct(r0, r1, r2))
 
-    def surface_video_play(self, parent, name):
+    def surface_set_video_file(self, parent, name, file_name):
         r0 = parent.encode('utf-8')
         r1 = name.encode('utf-8')
-        self.add(71, _pack_params_struct(r0, r1))
+        r2 = file_name.encode('utf-8')
+        self.add(71, _pack_params_struct(r0, r1, r2))
 
-    def surface_video_pause(self, parent, name):
+    def surface_video_configure(self, parent, name, video_setting, value):
         r0 = parent.encode('utf-8')
         r1 = name.encode('utf-8')
-        self.add(72, _pack_params_struct(r0, r1))
+        r2 = struct.pack('<If', video_setting, value)
+        self.add(72, _pack_params_struct(r0, r1, r2))
 
-    def surface_video_stop(self, parent, name):
+    def surface_video_configure_audio(self, parent, name, video_audio_setting, track_index, value):
         r0 = parent.encode('utf-8')
         r1 = name.encode('utf-8')
-        self.add(73, _pack_params_struct(r0, r1))
+        r2 = struct.pack('<IIf', video_audio_setting, track_index, value)
+        self.add(73, _pack_params_struct(r0, r1, r2))
 
-    def surface_video_is_playing(self, parent, name):
+    def surface_video_control(self, parent, name, video_operation):
         r0 = parent.encode('utf-8')
         r1 = name.encode('utf-8')
-        self.add(74, _pack_params_struct(r0, r1))
+        r2 = struct.pack('<I', video_operation)
+        self.add(74, _pack_params_struct(r0, r1, r2)) 
 
 
     #--------------------------------------------------------------------------
-    # Text IO Map
+    # UI Text
     #--------------------------------------------------------------------------
 
     def text_create(self, parent, name):
@@ -333,23 +389,29 @@ class command_buffer(hl2ss.umq_command_buffer):
 
     def button_get_state(self, parent):
         r0 = parent.encode('utf-8')
-        self.add(102, r0)
+        self.add(102, _pack_params_struct(r0))
 
 
     #--------------------------------------------------------------------------
-    # Audio Output IO Map
+    # Audio Output
     #--------------------------------------------------------------------------
 
-    def play_wav(self, name, clear, channels, sample_rate, data):
+    def audio_play_data(self, name, channels, sample_rate, data):
         r0 = name.encode('utf-8')
-        r1 = struct.pack('<III', channels, sample_rate, 1 if (clear) else 0)
+        r1 = struct.pack('<II', channels, sample_rate)
         r2 = data
         self.add(112, _pack_params_struct(r0, r1, r2))
 
-    def is_wav_playing(self):
-        self.add(113, b'')
+    def audio_play_file(self, name, audio_type):
+        r0 = name.encode('utf-8')
+        r1 = struct.pack('<I', audio_type)
+        self.add(113, _pack_params_struct(r0, r1))
 
-    def stop_wav(self):
-        self.add(114, b'')
+    def audio_configure(self, audio_setting, value):
+        r0 = struct.pack('<If', audio_setting, value)
+        self.add(114, _pack_params_struct(r0))
 
-        
+    def audio_control(self, audio_operation):
+        r0 = struct.pack('<I', audio_operation)
+        self.add(115, _pack_params_struct(r0))
+
