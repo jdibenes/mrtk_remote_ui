@@ -108,7 +108,7 @@ display_list.surface_set_texture_file(ui_panel, ui_image, image_name)
 
 display_list.text_create(ui_panel, ui_text1)
 display_list.text_set_transform(ui_panel, ui_text1, text_body_position, text_body_dimensions)
-display_list.text_set_format(ui_panel, ui_text1, hl2ss_uifm.FontStyles.Normal, 0.08, False, [1,1,1,1], hl2ss_uifm.HorizontalAlignmentOptions.Left, hl2ss_uifm.VerticalAlignmentOptions.Top, True, hl2ss_uifm.TextOverflowModes.Overflow)
+display_list.text_set_format(ui_panel, ui_text1, hl2ss_uifm.TextFontStyle.Normal, 0.08, False, [1,1,1,1], hl2ss_uifm.TextHorizontalAlignment.Left, hl2ss_uifm.TextVerticalAlignment.Top, True, hl2ss_uifm.TextOverflowMode.Overflow)
 display_list.text_set_text(ui_panel, ui_text1, text)
 display_list.text_set_active(ui_panel, ui_text1, hl2ss_uifm.ActiveState.Active)
 #display_list.text_destroy
@@ -116,20 +116,20 @@ display_list.text_set_active(ui_panel, ui_text1, hl2ss_uifm.ActiveState.Active)
 
 display_list.text_create(ui_panel, ui_text2)
 display_list.text_set_transform(ui_panel, ui_text2, text_title_position, text_title_dimensions)
-display_list.text_set_format(ui_panel, ui_text2, hl2ss_uifm.FontStyles.Bold, 0.1, False, [1,1,1,1], hl2ss_uifm.HorizontalAlignmentOptions.Center, hl2ss_uifm.VerticalAlignmentOptions.Middle, True, hl2ss_uifm.TextOverflowModes.Overflow)
+display_list.text_set_format(ui_panel, ui_text2, hl2ss_uifm.TextFontStyle.Bold, 0.1, False, [1,1,1,1], hl2ss_uifm.TextHorizontalAlignment.Center, hl2ss_uifm.TextVerticalAlignment.Middle, True, hl2ss_uifm.TextOverflowMode.Overflow)
 display_list.text_set_text(ui_panel, ui_text2, title)
 display_list.text_set_active(ui_panel, ui_text2, hl2ss_uifm.ActiveState.Active)
 #display_list.text_destroy
 #display_list.text_exists
 
-display_list.button_create(ui_panel, ui_button1, 0)
+display_list.button_create(ui_panel, ui_button1)
 display_list.button_set_transform(ui_panel, ui_button1, button1_position, [0,0,0,1], [1,1,1])
 display_list.button_set_text(ui_panel, ui_button1, 'Next Video')
 display_list.button_set_active(ui_panel, ui_button1, hl2ss_uifm.ActiveState.Active)
 #display_list.button_exists
 #display_list.button_destroy
 
-display_list.button_create(ui_panel, ui_button2, 1)
+display_list.button_create(ui_panel, ui_button2)
 display_list.button_set_transform(ui_panel, ui_button2, button2_position, [0,0,0,1], [1,1,1])
 display_list.button_set_text(ui_panel, ui_button2, 'Previous Video')
 display_list.button_set_active(ui_panel, ui_button2, hl2ss_uifm.ActiveState.Active)
@@ -144,11 +144,13 @@ print(f'Response: {results}')
 
 while (True):
     display_list = hl2ss_uifm.command_buffer()
-    display_list.button_get_state(ui_panel)
+    display_list.button_get_state(ui_panel, ui_button1)
+    display_list.button_get_state(ui_panel, ui_button2)
     ipc.push(display_list)
-    results = ipc.pull(display_list)[0]
-    if (results != 0):
-        video_index += (1 if ((results & 1) != 0) else 0) + (-1 if ((results & 2) != 0) else 0)
+    results = ipc.pull(display_list)
+    delta = (1 if (results[0] != 0) else 0) + (-1 if (results[1] != 0) else 0)
+    if (delta != 0):
+        video_index += delta
         video_index %= len(video_names)
         display_list = hl2ss_uifm.command_buffer()
         display_list.surface_set_video_file(ui_panel, ui_video, video_names[video_index])
