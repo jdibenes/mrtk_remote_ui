@@ -2,7 +2,9 @@
 import struct
 import hl2ss
 
+
 ERROR_BASE = 0x80000000
+
 
 # 3D Primitive Types
 class PrimitiveType:
