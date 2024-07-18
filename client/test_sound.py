@@ -2,7 +2,6 @@
 from pynput import keyboard
 
 import os
-import time
 import hl2ss
 import hl2ss_lnm
 import hl2ss_uifm
@@ -68,7 +67,7 @@ class remote_player:
         text_title_dimensions = [0.01, 0.01]
 
         text_status_position = [panel_position[0], panel_position[1], -0.016 / 2]
-        text_status_dimensions = [panel_scale[0] * 0.95, panel_scale[1] * 0.95]
+        text_status_dimensions = [panel_scale[0] * 0.90, panel_scale[1] * 0.90]
 
         ui_panel = 'uifm_player_demo_panel'
 
@@ -139,7 +138,7 @@ class remote_player:
         buffer.text_create(ui_panel, ui_text_status)
         buffer.text_set_transform(ui_panel, ui_text_status, text_status_position, text_status_dimensions)
         buffer.text_set_format(ui_panel, ui_text_status, hl2ss_uifm.TextFontStyle.Normal, 0.08, False, [1,1,1,1], hl2ss_uifm.TextHorizontalAlignment.Left, hl2ss_uifm.TextVerticalAlignment.Top, True, hl2ss_uifm.TextOverflowMode.Overflow)
-        buffer.text_set_text(ui_panel, ui_text_status, '[Waiting for client]')
+        buffer.text_set_text(ui_panel, ui_text_status, 'Click play')
         buffer.text_set_active(ui_panel, ui_text_status, True)
 
         buffer.panel_set_active(ui_panel, True)
