@@ -25,7 +25,7 @@ class ActiveState:
     Active = 1
 
 
-class FontStyles:
+class TextFontStyle:
     Normal = 0
     Bold = 1
     Italic = 2
@@ -39,7 +39,7 @@ class FontStyles:
     Highlight = 512
 
 
-class HorizontalAlignmentOptions:
+class TextHorizontalAlignment:
     Left = 1
     Center = 2
     Right = 4
@@ -48,7 +48,7 @@ class HorizontalAlignmentOptions:
     Geometry = 32
 
 
-class VerticalAlignmentOptions:
+class TextVerticalAlignment:
     Top = 256
     Middle = 512
     Bottom = 1024
@@ -57,7 +57,7 @@ class VerticalAlignmentOptions:
     Capline = 8192
 
 
-class TextOverflowModes:
+class TextOverflowMode:
     Overflow = 0
     Ellipsis = 1
     Masking = 2
@@ -65,8 +65,6 @@ class TextOverflowModes:
     ScrollRect = 4
     Page = 5
     Linked = 6
-
-
 
 
 class VideoSetting:
@@ -356,11 +354,10 @@ class command_buffer(hl2ss.umq_command_buffer):
     # Button IO Map
     #--------------------------------------------------------------------------
 
-    def button_create(self, parent, name, index):
+    def button_create(self, parent, name):
         r0 = parent.encode('utf-8')
         r1 = name.encode('utf-8')
-        r2 = struct.pack('<I', index)
-        self.add(96, _pack_params_struct(r0, r1, r2))
+        self.add(96, _pack_params_struct(r0, r1))
 
     def button_exists(self, parent, name):
         r0 = parent.encode('utf-8')
@@ -390,9 +387,10 @@ class command_buffer(hl2ss.umq_command_buffer):
         r2 = text.encode('utf-8')
         self.add(101, _pack_params_struct(r0, r1, r2))
 
-    def button_get_state(self, parent):
+    def button_get_state(self, parent, name):
         r0 = parent.encode('utf-8')
-        self.add(102, _pack_params_struct(r0))
+        r1 = name.encode('utf-8')
+        self.add(102, _pack_params_struct(r0, r1))
 
 
     #--------------------------------------------------------------------------
