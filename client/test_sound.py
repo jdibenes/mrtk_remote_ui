@@ -12,11 +12,9 @@ import hl2ss_uifm
 host = '192.168.1.7'
 
 # Folder containing the audio files
-data_folder = './data'
+data_folder = './data_demo'
 
 # Audio file names
-# Pure file names only
-# Type is not autodetected currently, please specify audio type
 playlist = [
     ('the_lost_forest.mp3', hl2ss_uifm.AudioType.MPEG),
     ('soul.wav',            hl2ss_uifm.AudioType.WAV)
@@ -274,6 +272,8 @@ class remote_player:
     def close(self):
         self.client_outbound.close()
 
+
+# Player control --------------------------------------------------------------
 
 enable = True
 
