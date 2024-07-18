@@ -1,99 +1,91 @@
 
-import numpy as np
-import wave
+from pynput import keyboard
+
 import hl2ss
 import hl2ss_lnm
 import hl2ss_uifm
 import time
+import os
+
+# Settings --------------------------------------------------------------------
 
 # HoloLens address
 host = '192.168.1.7'
 
+# Folder containing the audio files
+data_folder = './data'
 
-audio_file_1 = open('./data/the_lost_forest.mp3', 'rb')
-mp3_data = audio_file_1.read()
-audio_file_1.close()
-audio_file_2 = open('./data/soul.wav', 'rb')
-wav_data = audio_file_2.read()
-audio_file_2.close()
+# Audio file names
+# Pure file names only
+# Type is not autodetected currently, please specify audio type
+audio_file_descriptors = [
+    ('the_lost_forest.mp3', hl2ss_uifm.AudioType.MPEG),
+    ('soul.wav',            hl2ss_uifm.AudioType.WAV)
+]
 
+#------------------------------------------------------------------------------
 
-client = hl2ss.ipc_umq(host, hl2ss.IPCPort.UNITY_MESSAGE_QUEUE)
-client.open()
+enable = True
 
-wfile = wave.open('./data/fanfare2.wav', mode='rb')
-samples = wfile.getnframes()
-audio = wfile.readframes(samples)
-audio_s16 = np.frombuffer(audio, dtype=np.int16)
-audio_f32 = audio_s16.astype(np.float32) / 32768.0
+def on_press(key):
+    global enable
+    enable = key != keyboard.Key.esc
+    return enable
 
+listener = keyboard.Listener(on_press=on_press)
+listener.start()
 
+client_outbound = hl2ss_lnm.ipc_umq(host, hl2ss.IPCPort.UNITY_MESSAGE_QUEUE)
+client_outbound.open()
 
+cmdbuf = hl2ss_uifm.command_buffer()
 
-display_list = hl2ss_uifm.command_buffer()
-display_list.audio_play_data('fanfare2', wfile.getnchannels(), wfile.getframerate(), audio_f32.tobytes())
-display_list.file_upload('the_lost_forest.mp3', mp3_data)
-display_list.file_upload('crying_soul.wav', wav_data)
-display_list.audio_configure(hl2ss_uifm.AudioSetting.PAN_STEREO, 0.0)
-display_list.audio_configure(hl2ss_uifm.AudioSetting.PITCH, 1.0)
-display_list.audio_configure(hl2ss_uifm.AudioSetting.VOLUME, 1.0)
-display_list.audio_play_file('the_lost_forest.mp3', hl2ss_uifm.AudioType.MPEG)
-#display_list.audio_control(hl2ss_uifm.AudioOperation.STOP)
+for audio_file_descriptor in audio_file_descriptors:
+    file_name = audio_file_descriptor[0]
+    audio_type = audio_file_descriptor[1]
 
-client.push(display_list)
-response = client.pull(display_list)
+    with open(os.path.join(data_folder, file_name), 'rb') as audio_file:
+        cmdbuf.file_upload(file_name, audio_file.read())
 
-print(f'Response: {response}')
+client_outbound.push(cmdbuf)
+response = client_outbound.pull(cmdbuf)
 
-while (True):
-    display_list = hl2ss_uifm.command_buffer()
-    display_list.audio_control(hl2ss_uifm.AudioOperation.IS_PLAYING)
-    client.push(display_list)
-    response = client.pull(display_list)
-    if (response == 0):
-        break
+# For server responses:
+#     response <  0x80000000 : OK
+#     response >= 0x80000000 : ERROR
+print(f'file_upload response: {response}')
 
-display_list = hl2ss_uifm.command_buffer()
-display_list.audio_play_file('crying_soul.wav', hl2ss_uifm.AudioType.WAV)
+audio_index = 0
 
-client.push(display_list)
-response = client.pull(display_list)
+while (enable):
+    audio_file_descriptor = audio_file_descriptors[audio_index]
 
-client.close()
+    file_name = audio_file_descriptor[0]
+    audio_type = audio_file_descriptor[1]
 
+    cmdbuf = hl2ss_uifm.command_buffer()
+    cmdbuf.audio_play_file(file_name, audio_type)
+    
+    client_outbound.push(cmdbuf)
+    response = client_outbound.pull(cmdbuf)
 
+    print(f'audio_play_file response: {response}')
 
+    while (enable):
+        cmdbuf = hl2ss_uifm.command_buffer()
+        cmdbuf.audio_control(hl2ss_uifm.AudioOperation.IS_PLAYING)
 
-'''
+        client_outbound.push(cmdbuf)
+        response = client_outbound.pull(cmdbuf)
 
-ipc = hl2ss.ipc_umq(host, hl2ss.IPCPort.UNITY_MESSAGE_QUEUE)
-ipc.open()
+        if (response[0] == 0):
+            audio_index = (audio_index + 1) % len(audio_file_descriptors)
+            break
 
-display_list = uifm.command_buffer()
+cmdbuf = hl2ss_uifm.command_buffer()
+cmdbuf.audio_control(hl2ss_uifm.AudioOperation.STOP)
 
-wfile = wave.open('fanfare2.wav', mode='rb')
-samples = wfile.getnframes()
-audio = wfile.readframes(samples)
-audio_s16 = np.frombuffer(audio, dtype=np.int16)
-audio_f32 = audio_s16.astype(np.float32) / 32768.0
+client_outbound.push(cmdbuf)
+client_outbound.pull(cmdbuf)
 
-display_list.play_wav('test', True, wfile.getnchannels(), wfile.getframerate(), audio_f32.tobytes())
-display_list.is_wav_playing()
-
-ipc.push(display_list) # Send commands to server
-results = ipc.pull(display_list) # Get results from server
-print(f'Response: {results}')
-
-time.sleep(2)
-
-display_list = uifm.command_buffer()
-display_list.stop_wav()
-
-ipc.push(display_list) # Send commands to server
-results = ipc.pull(display_list) # Get results from server
-print(f'Response: {results}')
-
-# Disconnect ------------------------------------------------------------------
-
-ipc.close()
-'''
+client_outbound.close()
