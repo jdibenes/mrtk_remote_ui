@@ -1,3 +1,29 @@
+#------------------------------------------------------------------------------
+# Remote Audio Player
+# This script creates a window in the Unity scene which the HoloLens user can
+# interact with to control the playback of a set of audio files.
+#
+# How to use this script:
+# 1. Run the Unity application (uifm) on the HoloLens.
+# 2. In this script, set the host variable to your HoloLens IP address.
+# 3. Run this script.
+#
+# This script works as follows:
+# 1. Upload all audio files to the HoloLens.
+# 2. Create a panel with 2 text labels and 6 buttons:
+#      - Play button: plays/pauses current audio file.
+#      - Stop button: stops audio.
+#      - Previous button: plays previous audio file.
+#      - Next button: plays next audio file.
+#      - Mute button: mutes/unmutes audio.
+#      - Quit button: destroys the panel and stops this script.
+#    The hololens user can grab the panel to move it around or to scale it.
+# 3. The HoloLens user clicks the buttons to control audio playback. This
+#    script reads the status of the buttons and performs the corresponding
+#    actions.
+# 4. The HoloLens user clicks the Quit button to end the session. You can also
+#    press Esc to destroy the panel and stop this script.
+#------------------------------------------------------------------------------
 
 from pynput import keyboard
 
