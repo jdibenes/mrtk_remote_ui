@@ -72,6 +72,8 @@ while (enable):
     print(f'audio_play_file response: {response}')
 
     while (enable):
+        time.sleep(1)
+
         cmdbuf = hl2ss_uifm.command_buffer()
         cmdbuf.audio_control(hl2ss_uifm.AudioOperation.IS_PLAYING)
 
@@ -81,8 +83,6 @@ while (enable):
         if (response[0] == 0):
             audio_index = (audio_index + 1) % len(audio_file_descriptors)
             break
-
-        time.sleep(1)
 
 cmdbuf = hl2ss_uifm.command_buffer()
 cmdbuf.audio_control(hl2ss_uifm.AudioOperation.STOP)
