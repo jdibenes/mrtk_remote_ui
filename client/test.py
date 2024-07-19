@@ -1,5 +1,6 @@
 #------------------------------------------------------------------------------
-# Remote UI Example
+# Remote UI with Videos, Images, and Text demo
+
 #------------------------------------------------------------------------------
 
 from pynput import keyboard
@@ -15,11 +16,11 @@ import hl2ss_uifm
 host = '192.168.1.7'
 
 # Folder containing the media files
-data_folder = './data'#./data_demo/graphics'
+data_folder = './data_demo/graphics'
 
 # Image and video file names
 image_names = ['image.jpg']
-video_names = ['video_1.webm', 'video_2.webm', 'video_3.webm']
+video_names = ['Grouse.mp4', 'Bear.mp4', 'Wolves.mp4']
 
 # Panel title
 title = 'UI Sample - Video, Images, and Text'
@@ -60,10 +61,10 @@ panel_position = [0, 0, 0]
 panel_scale = [0.2, 0.15, 0.01]
 pin_position = [panel_position[0] + (panel_scale[0] / 2) + (0.8 * 0.032 / 2) + 0.005, panel_position[1] + (panel_scale[1] / 2) - (0.8 * 0.032 / 2), -0.016 / 2]
 
-surface_video_scale    = [0.09, 0.05, 1]
+surface_video_scale = [0.09, 0.05, 1]
 surface_video_position = [panel_position[0] - (panel_scale[0] / 2) + (surface_video_scale[0] / 2) + 0.005, panel_position[1] + (panel_scale[1] / 2) - (surface_video_scale[1] / 2) - 0.005, -0.016 / 2]
 
-surface_image_scale    = [0.09, 0.05, 1]
+surface_image_scale = [0.09, 0.05, 1]
 surface_image_position = [panel_position[0] + (panel_scale[0] / 2) - (surface_video_scale[0] / 2) - 0.005, panel_position[1] + (panel_scale[1] / 2) - (surface_video_scale[1] / 2) - 0.005, -0.016 / 2]
 
 text_body_position = [panel_position[0], panel_position[1] - (0.15-0.09) / 2, -0.016 / 2]
