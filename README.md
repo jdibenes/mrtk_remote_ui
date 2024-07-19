@@ -71,3 +71,7 @@ A sample Unity project (2020.3.42f1) can be found in the [uifm](uifm) directory.
 6. Set Build and Run on Remote Device (via Device Portal).
 7. Set Device Portal Address to your HoloLens IP address (e.g., https://192.168.1.7) and set your Device Portal Username and Password.
 8. Click Build and Run. Unity may ask for a Build folder. You can create a new one named Build.
+
+## References
+
+This project is part of the [hl2ss](https://github.com/jdibenes/hl2ss) project.
