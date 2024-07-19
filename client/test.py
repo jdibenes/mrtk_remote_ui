@@ -1,5 +1,23 @@
 #------------------------------------------------------------------------------
 # Remote UI with Videos, Images, and Text demo
+# This script creates a window in the Unity scene which is used to show a
+# video, an image, and text to the HoloLens user.
+#
+# How to use this script:
+# 1. Run the Unity application (uifm) on the HoloLens.
+# 2. In this script, set the host variable to your HoloLens IP address.
+# 3. Run this script.
+#
+# This script works as follows:
+# 1. Upload all video and image files to the HoloLens.
+# 2. Create a panel with 2 surfaces (for image and video), 2 text labels, and
+#    2 buttons.
+#    The hololens user can grab the panel to move it around or to scale it.
+# 3. The HoloLens user clicks the buttons to select a video. This
+#    script reads the status of the buttons and performs the corresponding
+#    actions.
+# 4. Press Esc to destroy the panel and stop this script.
+#------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
 
